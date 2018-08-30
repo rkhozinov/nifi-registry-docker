@@ -12,74 +12,137 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-# Apache NiFi Registry [![Build Status](https://travis-ci.org/apache/nifi-registry.svg?branch=master)](https://travis-ci.org/apache/nifi-registry)
 
-Registry—a subproject of Apache NiFi—is a complementary application that provides a central location for storage and management of shared resources across one or more instances of NiFi and/or MiNiFi.
+# Docker Image Quickstart
 
-## Table of Contents
+## Capabilities
+This image currently supports running in standalone mode either unsecured or with user authentication provided through:
+   * [Two-Way SSL with Client Certificates](https://nifi.apache.org/docs/nifi-registry-docs/html/administration-guide.html#security-configuration)
+   * [Lightweight Directory Access Protocol (LDAP)](https://nifi.apache.org/docs/nifi-registry-docs/html/administration-guide.html#ldap_identity_provider)
+   
+## Building
+The Docker image can be built using the following command:
 
-- [Getting Started](#getting-started)
-- [License](#license)
+    # user @ puter in ~/path/to/apache/nifi-registry/nifi-registry-docker/dockerhub    
+    $ docker build -t apache/nifi-registry:latest .
 
-## Getting Started
+This will result in an image tagged apache/nifi:latest
 
-### Requirements
+    $ docker images
+    > REPOSITORY               TAG           IMAGE ID            CREATED                  SIZE
+    > apache/nifi-registry     latest        751428cbf631        A long, long time ago    342MB
     
-* Java 1.8 (above 1.8.0_45)
-* Maven 3.1.0, or newer
-* Recent git client
-
-1) Clone the repo
-
-        git clone https://git-wip-us.apache.org/repos/asf/nifi-registry.git
-        git checkout master
-
-2) Build the project
-
-        cd nifi-registry
-        mvn clean install
-
-    If you wish to enable style and license checks, specify the contrib-check profile:
+**Note**: The default version of NiFi Registry specified by the Dockerfile is typically that of one that is unreleased if working from source.
+To build an image for a prior released version, one can override the `NIFI_REGISTRY_VERSION` build-arg with the following command:
     
-        mvn clean install -Pcontrib-check
+    $ docker build --build-arg NIFI_REGISTRY_VERSION={Desired NiFi Registry Version} -t apache/nifi-registry:latest .
+
+There is, however, no guarantee that older versions will work as properties have changed and evolved with subsequent releases.
+The configuration scripts are suitable for at least 0.1.0+.
+
+## Running a container
+
+### Standalone Instance, Unsecured
+The minimum to run a NiFi Registry instance is as follows:
+
+    docker run --name nifi-registry \
+      -p 18080:18080 \
+      -d \
+      apache/nifi-registry:latest
+      
+This will provide a running instance, exposing the instance UI to the host system on at port 18080,
+viewable at `http://localhost:18080/nifi-registry`.
+
+You can also pass in environment variables to change the NiFi Registry communication ports and hostname using the Docker '-e' switch as follows:
+
+    docker run --name nifi-registry \
+      -p 19090:19090 \
+      -d \
+      -e NIFI_REGISTRY_WEB_HTTP_PORT='19090'
+      apache/nifi-registry:latest
+
+For a list of the environment variables recognised in this build, look into the .sh/secure.sh and .sh/start.sh scripts
         
-    If you wish to run integration tests and contrib-check, specify both profiles:
-    
-        mvn clean install -Pcontrib-check,integration-tests
+### Standalone Instance, Two-Way SSL
+In this configuration, the user will need to provide certificates and the associated configuration information.
+Of particular note, is the `AUTH` environment variable which is set to `tls`.  Additionally, the user must provide an
+the DN as provided by an accessing client certificate in the `INITIAL_ADMIN_IDENTITY` environment variable.
+This value will be used to seed the instance with an initial user with administrative privileges.
+Finally, this command makes use of a volume to provide certificates on the host system to the container instance.
 
-3) Start the application
+    docker run --name nifi-registry \
+      -v /path/to/tls/certs/localhost:/opt/certs \
+      -p 18443:18443 \
+      -e AUTH=tls \
+      -e KEYSTORE_PATH=/opt/certs/keystore.jks \
+      -e KEYSTORE_TYPE=JKS \
+      -e KEYSTORE_PASSWORD=QKZv1hSWAFQYZ+WU1jjF5ank+l4igeOfQRp+OSbkkrs \
+      -e TRUSTSTORE_PATH=/opt/certs/truststore.jks \
+      -e TRUSTSTORE_PASSWORD=rHkWR1gDNW3R9hgbeRsT3OM3Ue0zwGtQqcFKJD2EXWE \
+      -e TRUSTSTORE_TYPE=JKS \
+      -e INITIAL_ADMIN_IDENTITY='CN=AdminUser, OU=nifi' \
+      -d \
+      apache/nifi-registry:latest
 
-        cd nifi-registry-assembly/target/nifi-registry-<VERSION>-bin/nifi-registry-<VERSION>/
-        ./bin/nifi-registry.sh start
-   
-   Note that the application web server can take a while to load before it is accessible.   
+### Standalone Instance, LDAP
+In this configuration, the user will need to provide certificates and the associated configuration information.  Optionally,
+if the LDAP provider of interest is operating in LDAPS or START_TLS modes, certificates will additionally be needed.
+Of particular note, is the `AUTH` environment variable which is set to `ldap`.  Additionally, the user must provide a
+DN as provided by the configured LDAP server in the `INITIAL_ADMIN_IDENTITY` environment variable. This value will be 
+used to seed the instance with an initial user with administrative privileges.  Finally, this command makes use of a 
+volume to provide certificates on the host system to the container instance.
 
-4) Accessing the application web UI
- 
-    With the default settings, the application UI will be available at [http://localhost:18080/nifi-registry](http://localhost:18080/nifi-registry) 
-   
-5) Accessing the application REST API
+#### For a minimal, connection to an LDAP server using SIMPLE authentication:
 
-    If you wish to test against the application REST API, you can access the REST API directly. With the default settings, the base URL of the REST API will be at `http://localhost:18080/nifi-registry-api`. A UI for testing the REST API will be available at [http://localhost:18080/nifi-registry-api/swagger/ui.html](http://localhost:18080/nifi-registry-api/swagger/ui.html) 
+    docker run --name nifi-registry \
+      -v /path/to/tls/certs/localhost:/opt/certs \
+      -p 18443:18443 \
+      -e AUTH=ldap \
+      -e KEYSTORE_PATH=/opt/certs/keystore.jks \
+      -e KEYSTORE_TYPE=JKS \
+      -e KEYSTORE_PASSWORD=QKZv1hSWAFQYZ+WU1jjF5ank+l4igeOfQRp+OSbkkrs \
+      -e TRUSTSTORE_PATH=/opt/certs/truststore.jks \
+      -e TRUSTSTORE_PASSWORD=rHkWR1gDNW3R9hgbeRsT3OM3Ue0zwGtQqcFKJD2EXWE \
+      -e TRUSTSTORE_TYPE=JKS \
+      -e INITIAL_ADMIN_IDENTITY='cn=nifi-admin,dc=example,dc=org' \
+      -e LDAP_AUTHENTICATION_STRATEGY='SIMPLE' \
+      -e LDAP_MANAGER_DN='cn=ldap-admin,dc=example,dc=org' \
+      -e LDAP_MANAGER_PASSWORD='password' \
+      -e LDAP_USER_SEARCH_BASE='dc=example,dc=org' \
+      -e LDAP_USER_SEARCH_FILTER='cn={0}' \
+      -e LDAP_IDENTITY_STRATEGY='USE_DN' \
+      -e LDAP_URL='ldap://ldap:389' \
+      -d \
+      apache/nifi-registry:latest
 
-6) Accessing the application logs
+#### The following, optional environment variables may be added to the above command when connecting to a secure  LDAP server configured with START_TLS or LDAPS
 
-    Logs will be available in `logs/nifi-registry-app.log`
+    -e LDAP_TLS_KEYSTORE: ''
+    -e LDAP_TLS_KEYSTORE_PASSWORD: ''
+    -e LDAP_TLS_KEYSTORE_TYPE: ''
+    -e LDAP_TLS_TRUSTSTORE: ''
+    -e LDAP_TLS_TRUSTSTORE_PASSWORD: ''
+    -e LDAP_TLS_TRUSTSTORE_TYPE: ''
 
-## License
+### The following, optional environment variables can be used to configure the database
 
-Except as otherwise noted this software is licensed under the
-[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+| nifi-registry.properties entry         | Variable                   |
+|----------------------------------------|----------------------------|
+| nifi.registry.db.url                   | NIFI_REGISTRY_DB_URL       |
+| nifi.registry.db.driver.class          | NIFI_REGISTRY_DB_CLASS     |
+| nifi.registry.db.driver.directory      | NIFI_REGISTRY_DB_DIR       |
+| nifi.registry.db.driver.username       | NIFI_REGISTRY_DB_USER      |
+| nifi.registry.db.driver.password       | NIFI_REGISTRY_DB_PASS      |
+| nifi.registry.db.driver.maxConnections | NIFI_REGISTRY_DB_MAX_CONNS |
+| nifi.registry.db.sql.debug             | NIFI_REGISTRY_DB_DEBUG_SQL |
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+#### The following, optional environment variables may be added to configure flow persistence provider.
 
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+| Environment Variable           | Configuration Property               |
+|--------------------------------|--------------------------------------|
+| NIFI_REGISTRY_FLOW_STORAGE_DIR | Flow Storage Directory               |
+| NIFI_REGISTRY_FLOW_PROVIDER    | (Class tag); valid values: git, file |
+| NIFI_REGISTRY_GIT_REMOTE       | Remote to Push                       |
+| NIFI_REGISTRY_GIT_USER         | Remote Access User                   |
+| NIFI_REGISTRY_GIT_PASSWORD     | Remote Access Password               |
 
