@@ -1,0 +1,14 @@
+version: '3'
+services:
+  registry:
+    build: .
+    ports:
+     - "18080:18080"
+    environment:
+     - LOG_LEVEL=INFO
+     - NIFI_REGISTRY_DB_DIR=./database
+     - NIFI_REGISTRY_FLOW_PROVIDER=file
+     - NIFI_REGISTRY_FLOW_STORAGE_DIR=/opt/nifi-registry/nifi-registry-0.2.0/flow_storage
+    volumes:
+     - ./database:/opt/nifi-registry/nifi-registry-0.2.0/database
+     - ./flow_storage:/opt/nifi-registry/nifi-registry-0.2.0/flow_storage
