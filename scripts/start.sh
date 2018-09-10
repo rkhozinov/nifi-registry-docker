@@ -20,9 +20,9 @@ templates_dir='/opt/nifi-registry/templates'
 
 [ -f "${scripts_dir}/common.sh" ] && . "${scripts_dir}/common.sh"
 
-gomplate -f "${templates_dir}/nifi-registry.properties" -o "${NIFI_REGISTRY_HOME}/conf/nifi-registry.properties"
-gomplate -f "${templates_dir}/providers.xml.tpl"        -o "${NIFI_REGISTRY_HOME}/conf/providers.xml"
-gomplate -f "${templates_dir}/logback.xml.tpl"          -o "${NIFI_REGISTRY_HOME}/conf/logback.xml"
+gomplate -f "${templates_dir}/nifi-registry.properties.tpl" -o "${NIFI_REGISTRY_HOME}/conf/nifi-registry.properties"
+gomplate -f "${templates_dir}/providers.xml.tpl"            -o "${NIFI_REGISTRY_HOME}/conf/providers.xml"
+gomplate -f "${templates_dir}/logback.xml.tpl"              -o "${NIFI_REGISTRY_HOME}/conf/logback.xml"
 
 # Check if we are secured or unsecured
 case ${AUTH} in
