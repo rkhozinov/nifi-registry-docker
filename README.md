@@ -141,8 +141,9 @@ volume to provide certificates on the host system to the container instance.
 | Environment Variable           | Configuration Property               |
 |--------------------------------|--------------------------------------|
 | NIFI_REGISTRY_FLOW_STORAGE_DIR | Flow Storage Directory               |
+| NIFI_REGISTRY_LOGS_DIR         | Logs Directory                       |
+| LOG_LEVEL                      | TRACE, DEBUG, INFO, WARN, ERROR      |
 | NIFI_REGISTRY_FLOW_PROVIDER    | (Class tag); valid values: git, file |
 | NIFI_REGISTRY_GIT_REMOTE       | Remote to Push                       |
 | NIFI_REGISTRY_GIT_USER         | Remote Access User                   |
 | NIFI_REGISTRY_GIT_PASSWORD     | Remote Access Password               |
-

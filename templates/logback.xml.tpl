@@ -18,7 +18,7 @@
         <resetJUL>true</resetJUL>
     </contextListener>
     <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/nifi-registry-app.log</file>
+        <file>{{getenv "NIFI_REGISTRY_LOG_DIR" "./logs"}}/nifi-registry-app.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--
               For daily rollover, use 'app_%d.log'.
@@ -26,7 +26,7 @@
               To GZIP rolled files, replace '.log' with '.log.gz'.
               To ZIP rolled files, replace '.log' with '.log.zip'.
             -->
-            <fileNamePattern>./logs/nifi-registry-app_%d{yyyy-MM-dd_HH}.%i.log</fileNamePattern>
+            <fileNamePattern>{{getenv "NIFI_REGISTRY_LOG_DIR" "./logs"}}/nifi-registry-app_%d{yyyy-MM-dd_HH}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -40,7 +40,7 @@
     </appender>
 
     <appender name="BOOTSTRAP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${org.apache.nifi.registry.bootstrap.config.log.dir}/nifi-registry-bootstrap.log</file>
+        <file>{{getenv "NIFI_REGISTRY_LOG_DIR" "./logs"}}/nifi-registry-bootstrap.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--
               For daily rollover, use 'user_%d.log'.
@@ -82,9 +82,7 @@
     </appender>
 
     <!-- valid logging levels: TRACE, DEBUG, INFO, WARN, ERROR -->
-
     <logger name="org.apache.nifi.registry" level="{{getenv "LOG_LEVEL" "INFO"}}"/>
-
     <!-- To see SQL statements set this to DEBUG -->
     <logger name="org.hibernate.SQL" level="{{getenv "LOG_LEVEL" "INFO"}}" />
     <!-- To see the values in SQL statements set this to TRACE -->
