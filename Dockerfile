@@ -31,11 +31,11 @@ ENV NIFI_REGISTRY_DB_DIR=./database
 ENV NIFI_REGISTRY_FLOW_PROVIDER=file
 ENV NIFI_REGISTRY_FLOW_STORAGE_DIR=./flow_storage
 ENV NIFI_REGISTRY_BASE_DIR=/opt/nifi-registry
-ENV NIFI_REGISTRY_HOME=${NIFI_REGISTRY_BASE_DIR}/nifi-registry-${NIFI_REGISTRY_VERSION}
+ENV NIFI_REGISTRY_HOME=${NIFI_REGISTRY_BASE_DIR}
 ENV NIFI_REGISTRY_BINARY_URL=nifi/nifi-registry/nifi-registry-${NIFI_REGISTRY_VERSION}/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz
 
 ENV NIFI_TOOLKIT_BASE_DIR=/opt/nifi-toolkit
-ENV NIFI_TOOLKIT_HOME=${NIFI_TOOLKIT_BASE_DIR}/nifi-toolkit-${NIFI_TOOLKIT_VERSION}
+ENV NIFI_TOOLKIT_HOME=${NIFI_TOOLKIT_BASE_DIR}
 ENV NIFI_TOOLKIT_BINARY_URL=${NIFI_TOOLKIT_BINARY_URL:-/nifi/${NIFI_TOOLKIT_VERSION}/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz}
 
 # Setup NiFi-Registry user
@@ -48,7 +48,7 @@ RUN groupadd -g ${GID} nifi || groupmod -n nifi `getent group ${GID} | cut -d: -
     && rm -rf /var/lib/apt/lists/*
 
 # Download, validate, and expand Gomplate util.
-RUN curl -fSL https://github.com/hairyhenderson/gomplate/releases/download/${GOMPLATE_VERSION}/gomplate_linux-amd64-slim -o /tmp/gomplate \
+RUN curl -sfSL https://github.com/hairyhenderson/gomplate/releases/download/${GOMPLATE_VERSION}/gomplate_linux-amd64-slim -o /tmp/gomplate \
     && echo "${GOMPLATE_SHA256} */tmp/gomplate" | sha256sum -c - \
     && mv /tmp/gomplate /usr/local/bin/ \
     && chmod +x /usr/local/bin/gomplate
@@ -56,16 +56,18 @@ RUN curl -fSL https://github.com/hairyhenderson/gomplate/releases/download/${GOM
 USER nifi
 
 # Download, validate, and expand Apache NiFi-Registry binary.
-RUN curl -fSL ${MIRROR}/${NIFI_REGISTRY_BINARY_URL} -o /tmp/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz \
+RUN curl -sfSL ${MIRROR}/${NIFI_REGISTRY_BINARY_URL} -o /tmp/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz \
     && echo "$(curl ${MIRROR}/${NIFI_REGISTRY_BINARY_URL}.sha256) */tmp/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz -C ${NIFI_REGISTRY_BASE_DIR} \
+    && tar -xzf /tmp/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz -C /tmp/ \
+    && mv /tmp/nifi-registry-${NIFI_REGISTRY_VERSION}/* ${NIFI_REGISTRY_BASE_DIR} \
     && rm /tmp/nifi-registry-${NIFI_REGISTRY_VERSION}-bin.tar.gz \
     && chown -R nifi:nifi ${NIFI_REGISTRY_HOME}
 
 # Download, validate, and expand Apache NiFi Toolkit binary.
-RUN curl -fSL ${MIRROR}/${NIFI_TOOLKIT_BINARY_URL} -o /tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz  \
+RUN curl -sfSL ${MIRROR}/${NIFI_TOOLKIT_BINARY_URL} -o /tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz  \
     && echo "$(curl ${MIRROR}/${NIFI_TOOLKIT_BINARY_URL}.sha256) */tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz" | sha256sum -c -  \
-    && tar -xzf /tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz -C ${NIFI_TOOLKIT_BASE_DIR} \
+    && tar -xzf /tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz -C /tmp \
+    && mv /tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}/* ${NIFI_TOOLKIT_BASE_DIR} \
     && rm /tmp/nifi-toolkit-${NIFI_TOOLKIT_VERSION}-bin.tar.gz \
     && chown -R nifi:nifi ${NIFI_TOOLKIT_HOME}
 
