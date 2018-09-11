@@ -39,6 +39,6 @@ script:
   - docker images
   - docker ps -a 
   - sleep 20s; curl -i http://localhost:${HTTP_PORT}/nifi-registry/explorer/grid-list
-  - docker exec -ti nifi-registry /opt/nifi-toolkit/nifi-toolkit-${NIFI_TOOLKIT_VERSION}/bin/cli.sh registry list-buckets -u http://nifi-registry:8080 --verbose       
-  - docker exec -ti nifi-registry /opt/nifi-toolkit/nifi-toolkit-${NIFI_TOOLKIT_VERSION}/bin/cli.sh registry create-bucket -bn 'test-bucket' -u http://nifi-registry:8080 --verbose
-  - docker exec -ti nifi-registry /opt/nifi-toolkit/nifi-toolkit-${NIFI_TOOLKIT_VERSION}/bin/cli.sh registry list-buckets -u http://nifi-registry:8080 --verbose
+  - docker exec -ti nifi-registry /opt/nifi-toolkit/bin/cli.sh registry list-buckets -u http://nifi-registry:8080 --verbose       
+  - docker exec -ti nifi-registry /opt/nifi-toolkit/bin/cli.sh registry create-bucket -bn 'test-bucket' -u http://nifi-registry:8080 --verbose
+  - docker exec -ti nifi-registry /opt/nifi-toolkit/bin/cli.sh registry list-buckets -u http://nifi-registry:8080 --verbose
